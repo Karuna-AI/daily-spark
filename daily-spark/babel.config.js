@@ -19,17 +19,6 @@ module.exports = function (api) {
           },
         },
       ],
-      [
-        'react-native-dotenv',
-        {
-          envName: 'APP_ENV',
-          moduleName: '@env',
-          path: '.env',
-          safe: false,
-          allowUndefined: true,
-          verbose: false,
-        },
-      ],
       // IMPORTANT: react-native-reanimated/plugin MUST be last
       'react-native-reanimated/plugin',
     ],

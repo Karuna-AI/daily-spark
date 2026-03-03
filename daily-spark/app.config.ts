@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   web: {
     bundler: 'metro',
-    output: 'static',
+    output: 'single-page-app',
     favicon: './assets/images/favicon.png',
   },
   plugins: [
@@ -75,14 +75,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           'Daily Spark uses your location to personalize sparks.',
       },
     ],
-    '@react-native-firebase/app',
-    '@react-native-firebase/auth',
-    '@react-native-firebase/messaging',
-    [
-      '@invertase/react-native-apple-authentication',
-      {},
-    ],
-    'react-native-gesture-handler',
   ],
   experiments: {
     typedRoutes: true,

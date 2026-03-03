@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFunctions, Functions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -12,10 +12,23 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Guard: only initialize once (important for hot reload)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const isFirebaseConfigured = !!(
+  firebaseConfig.apiKey && firebaseConfig.projectId
+);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app);
-export default app;
+let _app: FirebaseApp | null = null;
+let _auth: Auth | null = null;
+let _db: Firestore | null = null;
+let _functions: Functions | null = null;
+
+if (isFirebaseConfigured) {
+  _app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  _auth = getAuth(_app);
+  _db = getFirestore(_app);
+  _functions = getFunctions(_app);
+}
+
+export const auth = _auth;
+export const db = _db;
+export const functions = _functions;
+export default _app;

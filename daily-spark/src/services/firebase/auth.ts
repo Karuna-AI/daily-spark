@@ -16,10 +16,12 @@ WebBrowser.maybeCompleteAuthSession();
 
 // ─── Google Sign-In ───────────────────────────────────────────────────────────
 export function useGoogleAuth() {
+  // Fallback placeholder prevents expo-auth-session from throwing on web
+  // when env vars aren't configured yet; actual sign-in will still fail gracefully.
   const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'not-configured',
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || 'not-configured',
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'not-configured',
   });
 
   useEffect(() => {
