@@ -1,0 +1,36 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Firebase
+.firebase/
+firebase-debug.log
+functions/node_modules/
+functions/lib/
+
+# Secrets — NEVER commit
+.env
+GoogleService-Info.plist
+google-services.json
+functions/.env
+
+# macOS
+.DS_Store
+*.pem
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo

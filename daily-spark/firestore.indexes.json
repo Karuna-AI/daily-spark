@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "sparks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "topic", "order": "ASCENDING" },
+        { "fieldPath": "generatedDate", "order": "DESCENDING" },
+        { "fieldPath": "wowFactor", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sparks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "topic", "order": "ASCENDING" },
+        { "fieldPath": "wowFactor", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notifications.enabled", "order": "ASCENDING" },
+        { "fieldPath": "notifications.times", "arrayConfig": "CONTAINS" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
