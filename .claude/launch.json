@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-dev",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd 'daily-spark' && node_modules/.bin/expo start --web --port 8081 --clear"],
+      "port": 8081
+    },
+    {
+      "name": "firebase-emulators",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd 'daily-spark' && firebase emulators:start --project daily-spark"],
+      "port": 4000
+    }
+  ]
+}

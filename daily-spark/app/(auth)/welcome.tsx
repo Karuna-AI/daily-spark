@@ -27,7 +27,7 @@ export default function WelcomeScreen() {
   const [saving, setSaving] = useState(false);
   const { selectedTopics } = useTopicsStore();
   const { notificationTimes } = useSettingsStore();
-  const { user } = useAuthStore();
+  const { user, setProfile } = useAuthStore();
   const router = useRouter();
 
   const handleNext = async () => {
@@ -40,21 +40,39 @@ export default function WelcomeScreen() {
       }
       setStep(2);
     } else {
-      // Final step — save everything
-      if (!user) return;
+      // Final step — mark onboarding complete locally and navigate immediately
       setSaving(true);
-      try {
-        await Promise.all([
+
+      // Update local profile so auth gate lets us through right away
+      setProfile({
+        uid: user?.uid ?? '',
+        email: user?.email ?? '',
+        displayName: user?.displayName ?? 'Spark Fan',
+        selectedTopics,
+        onboardingComplete: true,
+        notifications: {
+          times: notificationTimes,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          enabled: true,
+        },
+        seenSparkIds: [],
+        seenSparkDates: [],
+        location: { enabled: false },
+      } as any);
+
+      // Navigate immediately — don't wait for Firestore
+      router.replace('/(app)');
+
+      // Background sync to Firestore (non-blocking, fails silently if not set up yet)
+      if (user) {
+        Promise.all([
           saveUserTopics(user.uid, selectedTopics),
           saveNotificationTimes(user.uid, notificationTimes),
           registerForPushNotifications(user.uid),
-        ]);
-        router.replace('/(app)');
-      } catch (err) {
-        Alert.alert('Something went wrong', 'Please try again.');
-      } finally {
-        setSaving(false);
+        ]).catch((err) => console.warn('Background save failed (will retry on next launch):', err));
       }
+
+      setSaving(false);
     }
   };
 

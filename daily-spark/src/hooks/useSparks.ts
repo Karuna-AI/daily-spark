@@ -2,12 +2,14 @@ import { useCallback } from 'react';
 import { getUserSparks, recordFeedback, markSparkSeen } from '../services/firebase/sparks';
 import { useSparksStore } from '../stores/sparksStore';
 import { useAuthStore } from '../stores/authStore';
+import { useStreakStore } from '../stores/streakStore';
 import { SparkReaction } from '../types/spark';
 
 export function useSparks() {
   const { user } = useAuthStore();
   const { todaySparks, currentIndex, isLoading, error, setTodaySparks, setLoading, setError, advanceCard } =
     useSparksStore();
+  const { recordLike } = useStreakStore();
 
   const loadSparks = useCallback(async () => {
     if (!user) return;
@@ -29,16 +31,21 @@ export function useSparks() {
       const spark = todaySparks[currentIndex];
       if (!spark) return;
 
+      // Record like in streak store (triggers badge checks)
+      if (reaction === 'like') {
+        recordLike(spark.topic);
+      }
+
       // Optimistically advance
       advanceCard();
 
-      // Mark seen + record feedback in parallel
-      await Promise.all([
+      // Mark seen + record feedback in parallel (background)
+      Promise.all([
         markSparkSeen(user.uid, spark.id),
         recordFeedback(user.uid, spark.id, spark.topic, reaction),
-      ]);
+      ]).catch((err) => console.warn('Feedback sync failed:', err));
     },
-    [user, todaySparks, currentIndex]
+    [user, todaySparks, currentIndex, recordLike]
   );
 
   const currentSpark = todaySparks[currentIndex] ?? null;

@@ -36,4 +36,17 @@ export interface UserProfile {
 
   // Onboarding
   onboardingComplete: boolean;
+
+  // Streak & Gamification
+  streak?: {
+    current: number;
+    longest: number;
+    lastOpenedDate: string; // 'YYYY-MM-DD'
+  };
+  earnedBadgeIds?: string[];
+  likedSparkCount?: number;
+  seenSparkCountByTopic?: Record<string, number>; // topicId → count
+  shareCount?: number;
+  referralCount?: number;
+  sparksSeenTotal?: number;
 }

@@ -8,6 +8,11 @@ export function useAuthListener() {
   const { setUser, setProfile, setInitialized, reset } = useAuthStore();
 
   useEffect(() => {
+    if (!auth) {
+      // Firebase not configured — mark as initialized with no user
+      reset();
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);

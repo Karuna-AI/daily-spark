@@ -1,24 +1,33 @@
-import React from 'react';
+import React, { RefObject, useState } from 'react';
 import {
   View,
   TouchableOpacity,
   Text,
   StyleSheet,
-  AccessibilityProps,
+  ActivityIndicator,
 } from 'react-native';
+import ViewShot from 'react-native-view-shot';
 import { Colors } from '../../constants/colors';
 import { Spark, SparkReaction } from '../../types/spark';
-import { shareSpark } from '../../utils/share';
+import { shareSparkAsImage, shareSpark } from '../../utils/share';
 import { useHaptics } from '../../hooks/useHaptics';
 
 interface CardActionsProps {
   spark: Spark | null;
   onReaction: (reaction: SparkReaction) => void;
   disabled?: boolean;
+  /** Ref to the ViewShot wrapping the ShareCard (for image capture) */
+  viewShotRef?: RefObject<ViewShot>;
 }
 
-export function CardActions({ spark, onReaction, disabled = false }: CardActionsProps) {
+export function CardActions({
+  spark,
+  onReaction,
+  disabled = false,
+  viewShotRef,
+}: CardActionsProps) {
   const { successNotification, errorNotification, mediumImpact } = useHaptics();
+  const [sharing, setSharing] = useState(false);
 
   const handleLike = () => {
     successNotification();
@@ -33,7 +42,25 @@ export function CardActions({ spark, onReaction, disabled = false }: CardActions
   const handleShare = async () => {
     if (!spark) return;
     mediumImpact();
-    await shareSpark(spark);
+    setSharing(true);
+    try {
+      if (viewShotRef?.current && typeof (viewShotRef.current as any).capture === 'function') {
+        // Capture the ShareCard as an image and share it
+        const uri = await (viewShotRef.current as any).capture() as string | undefined;
+        if (uri) {
+          await shareSparkAsImage(uri, spark);
+          return;
+        }
+      }
+      // Fallback to plain text share
+      await shareSpark(spark);
+    } catch (err) {
+      console.warn('Share failed:', err);
+      // Fallback to text share on error
+      await shareSpark(spark);
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
@@ -51,13 +78,17 @@ export function CardActions({ spark, onReaction, disabled = false }: CardActions
 
       {/* Share */}
       <TouchableOpacity
-        style={[styles.actionBtn, styles.shareBtn, disabled && styles.disabled]}
+        style={[styles.actionBtn, styles.shareBtn, (disabled || sharing) && styles.disabled]}
         onPress={handleShare}
-        disabled={disabled || !spark}
-        accessibilityLabel="Share this spark"
+        disabled={disabled || sharing || !spark}
+        accessibilityLabel="Share this spark as an image"
         accessibilityRole="button"
       >
-        <Text style={styles.actionIcon}>📤</Text>
+        {sharing ? (
+          <ActivityIndicator size="small" color={Colors.share} />
+        ) : (
+          <Text style={styles.actionIcon}>📤</Text>
+        )}
       </TouchableOpacity>
 
       {/* Like */}
