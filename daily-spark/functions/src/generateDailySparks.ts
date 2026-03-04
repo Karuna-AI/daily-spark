@@ -3,9 +3,6 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import OpenAI from 'openai';
 import { ALL_SUBTOPICS, getSubtopicById } from './topics';
 
-const SPARKS_PER_TOPIC = parseInt(process.env.SPARKS_PER_TOPIC_PER_DAY ?? '10', 10);
-const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
-
 interface GeneratedSpark {
   text: string;
   emoji: string;
@@ -42,8 +39,11 @@ export const generateDailySparks = onSchedule(
     timeZone: 'UTC',
     timeoutSeconds: 540,    // 9 minutes (OpenAI calls can be slow)
     memory: '512MiB',
+    secrets: ['OPENAI_API_KEY'], // Declare secret so it's injected at runtime
   },
   async () => {
+    const sparksPerTopic = parseInt(process.env.SPARKS_PER_TOPIC_PER_DAY ?? '10', 10);
+    const openaiModel = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const db = admin.firestore();
     const today = new Date().toISOString().split('T')[0];
@@ -57,10 +57,10 @@ export const generateDailySparks = onSchedule(
       if (!meta) continue;
 
       try {
-        const prompt = buildPrompt(subtopic.id, subtopic.label, meta.parentLabel, SPARKS_PER_TOPIC);
+        const prompt = buildPrompt(subtopic.id, subtopic.label, meta.parentLabel, sparksPerTopic);
 
         const response = await openai.chat.completions.create({
-          model: OPENAI_MODEL,
+          model: openaiModel,
           messages: [{ role: 'user', content: prompt }],
           response_format: { type: 'json_object' },
           temperature: 0.85,
