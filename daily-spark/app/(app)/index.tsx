@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SwipeDeck } from '../../src/components/cards/SwipeDeck';
 import { CardActions } from '../../src/components/cards/CardActions';
 import { LoadingSpinner } from '../../src/components/common/LoadingSpinner';
+import { StreakBanner } from '../../src/components/home/StreakBanner';
+import { BadgeUnlockModal } from '../../src/components/home/BadgeUnlockModal';
+import { ShareCard } from '../../src/components/cards/ShareCard';
 import { Colors } from '../../src/constants/colors';
 import { useSparks } from '../../src/hooks/useSparks';
 import { useSparkSound } from '../../src/hooks/useSound';
 import { useHaptics } from '../../src/hooks/useHaptics';
+import { useStreakStore } from '../../src/stores/streakStore';
 import { Config } from '../../src/constants/config';
+import ViewShot from 'react-native-view-shot';
 
 export default function HomeScreen() {
   const { todaySparks, currentSpark, currentIndex, isDone, isLoading, error, loadSparks, handleReaction } =
     useSparks();
   const { playSparkSound } = useSparkSound();
   const { lightImpact } = useHaptics();
+  const viewShotRef = useRef<ViewShot>(null);
+
+  const {
+    current: streakCurrent,
+    earnedBadgeIds,
+    newlyUnlockedBadge,
+    clearNewBadge,
+    recordTopicSeen,
+    recordSparkSeen,
+  } = useStreakStore();
 
   useEffect(() => {
     loadSparks();
@@ -70,6 +85,11 @@ export default function HomeScreen() {
   const handleCardShown = () => {
     playSparkSound();
     lightImpact();
+    // Track topic seen for explorer badges
+    if (currentSpark?.topic) {
+      recordTopicSeen(currentSpark.topic);
+    }
+    recordSparkSeen();
   };
 
   return (
@@ -93,6 +113,12 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Streak Banner */}
+        <StreakBanner
+          streak={streakCurrent}
+          earnedBadgeCount={earnedBadgeIds.length}
+        />
+
         {/* Swipe Deck */}
         <View style={styles.deckContainer}>
           <SwipeDeck
@@ -107,8 +133,15 @@ export default function HomeScreen() {
         <CardActions
           spark={currentSpark}
           onReaction={handleReaction}
+          viewShotRef={viewShotRef}
         />
       </SafeAreaView>
+
+      {/* Off-screen share card for image capture */}
+      <ShareCard spark={currentSpark} ref={viewShotRef} />
+
+      {/* Badge unlock overlay */}
+      <BadgeUnlockModal badge={newlyUnlockedBadge} onDismiss={clearNewBadge} />
     </LinearGradient>
   );
 }
@@ -123,7 +156,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   headerTitle: {
     color: Colors.textPrimary,

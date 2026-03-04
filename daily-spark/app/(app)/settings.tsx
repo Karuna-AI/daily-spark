@@ -9,6 +9,7 @@ import {
   Switch,
   Alert,
   Platform,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,11 +17,14 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSettingsStore } from '../../src/stores/settingsStore';
+import { useStreakStore } from '../../src/stores/streakStore';
 import { signOut } from '../../src/services/firebase/auth';
 import { saveNotificationTimes } from '../../src/services/firebase/notifications';
 import { registerForPushNotifications } from '../../src/hooks/useNotifications';
 import { getCurrentCity } from '../../src/utils/location';
 import { formatNotificationTime } from '../../src/utils/dateHelpers';
+import { BadgeGrid } from '../../src/components/profile/BadgeGrid';
+import { ChallengeSheet } from '../../src/components/home/ChallengeSheet';
 
 export default function SettingsScreen() {
   const { user, profile } = useAuthStore();
@@ -29,8 +33,11 @@ export default function SettingsScreen() {
     soundEnabled, hapticsEnabled, setNotificationTimes, setNotificationsEnabled,
     setLocationEnabled, setLocation, setSoundEnabled, setHapticsEnabled,
   } = useSettingsStore();
+  const { current: streakCurrent, earnedBadgeIds } = useStreakStore();
 
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const [showBadges, setShowBadges] = useState(false);
+  const [showChallenge, setShowChallenge] = useState(false);
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -114,6 +121,49 @@ export default function SettingsScreen() {
             <Text style={styles.displayName}>{profile?.displayName ?? user?.displayName}</Text>
             <Text style={styles.email}>{profile?.email ?? user?.email}</Text>
           </View>
+
+          {/* Referrals */}
+          <SectionHeader title="Friends" />
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => setShowChallenge(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Invite Friends"
+          >
+            <View style={styles.achievementRow}>
+              <View style={styles.achievementLeft}>
+                <Text style={styles.achievementIcon}>🎯</Text>
+                <View>
+                  <Text style={styles.achievementLabel}>Invite Friends</Text>
+                  <Text style={styles.achievementSub}>Unlock premium topics at 2 referrals</Text>
+                </View>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Streak & Badges */}
+          <SectionHeader title="Achievements" />
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => setShowBadges(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`My Badges — ${earnedBadgeIds.length} earned`}
+          >
+            <View style={styles.achievementRow}>
+              <View style={styles.achievementLeft}>
+                <Text style={styles.achievementIcon}>🏅</Text>
+                <View>
+                  <Text style={styles.achievementLabel}>My Badges</Text>
+                  <Text style={styles.achievementSub}>{earnedBadgeIds.length} earned</Text>
+                </View>
+              </View>
+              <View style={styles.streakPill}>
+                <Text style={styles.streakPillText}>{streakCurrent > 0 ? `🔥 ${streakCurrent}` : '—'}</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </View>
+          </TouchableOpacity>
 
           {/* Notifications */}
           <SectionHeader title="Notifications" />
@@ -226,6 +276,26 @@ export default function SettingsScreen() {
           <View style={{ height: 32 }} />
         </ScrollView>
       </SafeAreaView>
+
+      {/* Badge grid modal */}
+      <Modal
+        visible={showBadges}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowBadges(false)}
+      >
+        <BadgeGrid onClose={() => setShowBadges(false)} />
+      </Modal>
+
+      {/* Challenge / Referrals modal */}
+      <Modal
+        visible={showChallenge}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowChallenge(false)}
+      >
+        <ChallengeSheet onClose={() => setShowChallenge(false)} />
+      </Modal>
     </LinearGradient>
   );
 }
@@ -352,5 +422,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 16,
+  },
+
+  // Achievements
+  achievementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  achievementLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  achievementIcon: { fontSize: 24 },
+  achievementLabel: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700' },
+  achievementSub: { color: Colors.textMuted, fontSize: 12, marginTop: 2 },
+  streakPill: {
+    backgroundColor: Colors.spark + '20',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginRight: 8,
+  },
+  streakPillText: {
+    color: Colors.spark,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  chevron: {
+    color: Colors.textMuted,
+    fontSize: 22,
+    fontWeight: '300',
   },
 });
