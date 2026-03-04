@@ -20,11 +20,12 @@ function AuthGate() {
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const inJoinGroup = segments[0] === 'join'; // referral deep link — allow unauthenticated
+    const inJoinGroup = segments[0] === 'join';       // referral deep link — allow unauthenticated
+    const inPrivacyPage = segments[0] === 'privacy';  // privacy policy — allow unauthenticated
 
     if (!user) {
-      // Not logged in → send to login (but allow join page to show first)
-      if (!inAuthGroup && !inJoinGroup) router.replace('/(auth)/login');
+      // Not logged in → send to login (but allow join page and privacy policy to show first)
+      if (!inAuthGroup && !inJoinGroup && !inPrivacyPage) router.replace('/(auth)/login');
     } else if (!profile?.onboardingComplete) {
       // Logged in but no topics set → send to onboarding
       router.replace('/(auth)/welcome');
@@ -60,6 +61,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
         <Stack.Screen name="join/[ref]" />
+        <Stack.Screen name="privacy" options={{ title: 'Privacy Policy' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </GestureHandlerRootView>

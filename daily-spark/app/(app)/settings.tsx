@@ -272,6 +272,21 @@ export default function SettingsScreen() {
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
 
+          {/* Legal */}
+          <SectionHeader title="Legal" />
+          <View style={styles.card}>
+            <TouchableOpacity
+              onPress={() => router.push('/privacy')}
+              accessibilityRole="button"
+              accessibilityLabel="Privacy Policy"
+            >
+              <View style={styles.achievementRow}>
+                <Text style={[styles.settingLabel, { flex: 1 }]}>Privacy Policy</Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.version}>Daily Spark v1.0.0</Text>
           <View style={{ height: 32 }} />
         </ScrollView>

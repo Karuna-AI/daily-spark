@@ -5,10 +5,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Daily Spark',
   slug: 'daily-spark',
   version: '1.0.0',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'dailyspark',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'dark',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'contain',
@@ -17,15 +20,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.dailyspark.app',
-    googleServicesFile: './GoogleService-Info.plist',
+    buildNumber: '1',
+    googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './GoogleService-Info.plist',
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
-        'Daily Spark uses your location to personalize sparks with local news and sports.',
-      NSLocationAlwaysUsageDescription:
-        'Daily Spark uses your location to personalize sparks with local news and sports.',
+        'Daily Spark uses your approximate location to personalize facts with local events and news.',
+      NSLocationAlwaysAndWhenInUseUsageDescription:
+        'Daily Spark uses your approximate location to personalize facts with local events and news.',
+      NSUserTrackingUsageDescription:
+        'Daily Spark does not track you. This permission is only used by Firebase analytics.',
+      UIBackgroundModes: ['fetch', 'remote-notification'],
     },
     entitlements: {
       'com.apple.developer.applesignin': ['Default'],
+    },
+    privacyManifests: {
+      NSPrivacyAccessedAPITypes: [
+        {
+          NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults',
+          NSPrivacyAccessedAPITypeReasons: ['CA92.1'],
+        },
+      ],
     },
   },
   android: {
@@ -34,7 +49,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#0D0D1A',
     },
     package: 'com.dailyspark.app',
-    googleServicesFile: './google-services.json',
+    versionCode: 1,
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
     permissions: [
       'ACCESS_FINE_LOCATION',
       'ACCESS_COARSE_LOCATION',
@@ -64,7 +80,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         icon: './assets/images/notification-icon.png',
         color: '#FFD700',
-        sounds: ['./assets/sounds/spark.wav'],
+        // Note: For iOS notification sound, convert spark.mp3 → spark.caf
+        // using: ffmpeg -i assets/sounds/spark.mp3 assets/sounds/spark.caf
+        // Then add: sounds: ['./assets/sounds/spark.caf']
         androidMode: 'default',
       },
     ],
@@ -72,22 +90,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-location',
       {
         locationAlwaysAndWhenInUsePermission:
-          'Daily Spark uses your location to personalize sparks.',
+          'Daily Spark uses your approximate location to personalize sparks with local news.',
       },
     ],
+    '@react-native-firebase/app',
+    '@react-native-firebase/auth',
+    '@react-native-firebase/messaging',
   ],
   experiments: {
     typedRoutes: true,
   },
   extra: {
-    firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-    firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-    firebaseStorageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
     eas: {
-      projectId: 'YOUR_EAS_PROJECT_ID',
+      projectId: process.env.EAS_PROJECT_ID ?? 'YOUR_EAS_PROJECT_ID',
     },
   },
 });
