@@ -26,9 +26,15 @@ export function useGoogleAuth() {
 
   useEffect(() => {
     if (response?.type === 'success') {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential).catch(console.error);
+      // On web, expo-auth-session may return access_token instead of id_token
+      const { id_token, access_token } = response.params;
+      const credential = GoogleAuthProvider.credential(
+        id_token ?? null,
+        access_token ?? null
+      );
+      if (auth) {
+        signInWithCredential(auth, credential).catch(console.error);
+      }
     }
   }, [response]);
 
