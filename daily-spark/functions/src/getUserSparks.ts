@@ -69,7 +69,11 @@ export const getUserSparks = onCall(
     }
 
     // Pick MAX_SPARKS with variety (prefer different topics)
-    const selected = pickWithTopicVariety(candidates, MAX_SPARKS, selectedTopics);
+    const selected = pickWithTopicVariety(
+      candidates as Array<Record<string, unknown> & { id: string; topic: unknown }>,
+      MAX_SPARKS,
+      selectedTopics
+    );
 
     // Update seen list
     const now = new Date().toISOString();

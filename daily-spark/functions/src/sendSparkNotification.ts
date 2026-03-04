@@ -18,7 +18,6 @@ export const sendSparkNotification = onSchedule(
     const messaging = admin.messaging();
 
     const currentHour = new Date().getUTCHours();
-    const currentMinute = new Date().getUTCMinutes();
     // Match HH:00 format (top of hour)
     const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:00`;
 
